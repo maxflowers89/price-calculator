@@ -2,4 +2,4 @@ module example.com/price-calculator
 
 go 1.21.2
 
-require github.com/magiconair/properties v1.8.7
+require gopkg.in/yaml.v2 v2.4.0

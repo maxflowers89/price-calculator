@@ -1,20 +1,26 @@
 package configuration
 
 import (
-	"github.com/magiconair/properties"
+	"gopkg.in/yaml.v2"
 	"log"
+	"os"
 )
 
 type Configuration struct {
-	IoManagerType string   `properties:"io-manager-type,default=file"`
-	TaxRates      []string `properties:"tax-rates"`
+	IoManagerType string    `yaml:"io-manager-type"`
+	TaxRates      []float64 `yaml:"tax-rates"`
 }
 
 func LoadConfiguration() Configuration {
-	p := properties.MustLoadFile("config.properties", properties.UTF8)
+	data, err := os.ReadFile("configuration.yaml")
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+
 	var configuration Configuration
-	if err := p.Decode(&configuration); err != nil {
-		log.Fatal(err)
+	err = yaml.Unmarshal(data, &configuration)
+	if err != nil {
+		log.Fatalf("error: %v", err)
 	}
 
 	return configuration

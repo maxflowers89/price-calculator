@@ -7,21 +7,29 @@ import (
 	"example.com/price-calculator/iomanager"
 	"example.com/price-calculator/prices"
 	"fmt"
-	"strconv"
 )
-
-//
 
 func main() {
 	config := configuration.LoadConfiguration()
+	doneChannels := make([]chan bool, len(config.TaxRates))
+	errorChannels := make([]chan error, len(config.TaxRates))
 
-	for _, taxRate := range config.TaxRates {
-		taxRateAsFloat, _ := strconv.ParseFloat(taxRate, 64)
-		iom := getIOManager(config.IoManagerType, taxRateAsFloat)
-		priceJob := prices.NewTaxIncludedPriceJob(iom, taxRateAsFloat)
-		err := priceJob.Process()
-		if err != nil {
-			fmt.Println("Could not process the job: ", err)
+	for index, taxRate := range config.TaxRates {
+		doneChannels[index] = make(chan bool)
+		errorChannels[index] = make(chan error)
+		iom := getIOManager(config.IoManagerType, taxRate)
+		priceJob := prices.NewTaxIncludedPriceJob(iom, taxRate)
+		go priceJob.Process(doneChannels[index], errorChannels[index])
+	}
+
+	for index := range config.TaxRates {
+		select {
+		case err := <-errorChannels[index]:
+			if err != nil {
+				fmt.Println(err)
+			}
+		case <-doneChannels[index]:
+			fmt.Println("Done!")
 		}
 	}
 }

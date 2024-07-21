@@ -1,0 +1,6 @@
+io-manager-type: file
+tax-rates:
+  - 0
+  - 0.07
+  - 0.1
+  - 0.15
